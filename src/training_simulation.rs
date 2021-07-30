@@ -32,7 +32,7 @@ impl TrainingSimulation {
 
 impl neat_gru::game::Game<f64> for TrainingSimulation {
     fn run_generation(&mut self) -> Vec<f64> {
-        Vec::new()
+        vec![]
     }
 
     fn reset_players(&mut self, nets: Vec<NeuralNetwork<f64>>) {

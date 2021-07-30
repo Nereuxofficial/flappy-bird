@@ -64,6 +64,14 @@ macro_rules! handle_input {
     };
 }
 
+/// Returns whether the bird is not alive
+macro_rules! bird_is_not_alive {
+    ($bird_ref: expr, $pipe_ref: expr, $hole_size: expr) => {
+        ($bird_ref.y + bird::RADIUS >= $pipe_ref.y
+            || $bird_ref.y - bird::RADIUS <= $pipe_ref.y - $hole_size)  
+    };
+}
+
 impl<const GAME_TYPE: i32> PlayerHandler<{ GAME_TYPE }> {
     pub fn new() -> PlayerHandler<{ GAME_TYPE }> {
         let space_pressed = Arc::new(Mutex::new(false));
@@ -227,6 +235,7 @@ impl<const GAME_TYPE: i32> Game<{ GAME_TYPE }> {
             // Speed Checkbox
             let speed_checkbox = get_html_input_element!(document, "speed");
             let speed_check = speed_checkbox.checked();
+            
             let canvas = document.get_element_by_id("canvas").unwrap();
 
             let canvas: Arc<web_sys::HtmlCanvasElement> = Arc::new(
@@ -387,19 +396,16 @@ impl<const GAME_TYPE: i32> Game<{ GAME_TYPE }> {
         let hole_size = self.hole_size;
         if overlap_x {
             self.birds.retain(|bird_ref| {
-                let alive = !(bird_ref.y + bird::RADIUS >= pipe_ref.y
-                    || bird_ref.y - bird::RADIUS <= pipe_ref.y - hole_size);
-                if !alive {
+                let not_alive = bird_is_not_alive!(bird_ref, pipe_ref, hole_size);
+                if not_alive {
                     scores[bird_ref.index] = current_score;
                 }
-                alive
+                !not_alive
             });
 
             if let Some(player) = &mut self.player {
                 let player_bird = &player.bird;
-                let alive = !(player_bird.y + bird::RADIUS >= pipe_ref.y
-                    || player_bird.y - bird::RADIUS <= pipe_ref.y - hole_size);
-                if !alive {
+                if bird_is_not_alive!(player_bird, pipe_ref, hole_size) {
                     self.player.take();
                 }
             }
